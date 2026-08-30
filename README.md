@@ -2,41 +2,22 @@
 
 ## Overview
 
-Measures Converter is a Flutter and Dart application that converts measurements between metric and imperial units. It supports length and mass conversions while preventing incompatible conversions between categories.
+Measures Converter is a Flutter and Dart application for converting compatible length and mass units between metric and imperial systems.
 
 ## Features
 
-- Accepts whole-number, decimal, and signed numeric input
-- Converts between metric and imperial measurements
-- Limits destination units to the selected measurement category
-- Supports same-unit and repeated conversions
-- Displays clear validation for empty or invalid input
-- Formats results with practical decimal precision
+- Numeric input with clear validation
+- Compatible From and To unit selection
+- Same-unit and repeated conversions with formatted results
 
 ## Supported Units
 
-Length:
-
-- meters
-- kilometers
-- feet
-- miles
-
-Mass:
-
-- kilograms
-- grams
-- pounds
-- ounces
+- Length: meters, kilometers, feet, and miles
+- Mass: kilograms, grams, pounds, and ounces
 
 ## Technologies
 
-- Dart
-- Flutter
-- Android emulator
-- Git
-- GitHub
-- VS Code
+Flutter, Dart, Android Emulator, Git, GitHub, and Visual Studio Code.
 
 ## Project Structure
 
@@ -53,11 +34,9 @@ android/app/src/main/AndroidManifest.xml  Android application manifest
 
 ## Conversion Design
 
-The application converts each source value to a category base unit and then converts that base value to the destination unit. Meters are the base unit for length, and kilograms are the base unit for mass. This avoids separate formulas for every possible unit pair and keeps conversion logic out of the UI.
+Each value is converted through a category base unit: meters for length and kilograms for mass. This keeps formulas centralized in the conversion service and separate from the UI.
 
 ## Running the Application
-
-Confirm that an Android emulator is running, then execute:
 
 ```bash
 flutter pub get
@@ -66,24 +45,15 @@ flutter run
 
 ## Testing
 
-Run the unit and widget tests with:
-
-```bash
-flutter test
-```
-
-## Code Quality
-
-Format and analyze the project with:
-
 ```bash
 dart format .
 flutter analyze
+flutter test
 ```
 
 ## Screenshot
 
-The repository includes a real Android emulator capture at [screenshots/measures_converter.png](screenshots/measures_converter.png). It shows the completed conversion `115 kilometers are 71.457687 miles` and can be included in the Blackboard Word document.
+![Measures Converter running on the Android emulator](screenshots/measures_converter.png)
 
 ## Repository
 
@@ -91,4 +61,4 @@ The repository includes a real Android emulator capture at [screenshots/measures
 
 ## Development / AI Assistance
 
-AI-assisted development tools supported environment setup, implementation review, troubleshooting, and testing. The student reviews and tests the implementation before submission.
+AI-assisted tools supported setup, implementation review, troubleshooting, and testing. The student reviewed and tested the final implementation.
