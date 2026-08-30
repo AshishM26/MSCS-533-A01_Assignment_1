@@ -11,7 +11,7 @@ try:
     from docx import Document
     from docx.enum.style import WD_STYLE_TYPE
     from docx.enum.table import WD_ALIGN_VERTICAL
-    from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK, WD_LINE_SPACING
+    from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
     from docx.oxml import OxmlElement
     from docx.oxml.ns import qn
     from docx.shared import Inches, Pt, RGBColor
@@ -188,20 +188,24 @@ def configure_page(document: Document) -> None:
     section.footer_distance = Inches(0.492)
 
     header_paragraph = section.header.paragraphs[0]
-    header_paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    header_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    header_paragraph.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
     header_paragraph.paragraph_format.space_after = Pt(0)
     header_run = header_paragraph.add_run(
-        "MSCS-533-A01 | Hands-on Assignment 1"
+        "MSCS-533-A01\nSoftware Engineering and Multiplatform App Development"
     )
     set_run_font(
-        header_run, name="Times New Roman", size=9, italic=True, color=MUTED
+        header_run, name="Times New Roman", size=9, color=MUTED
     )
 
     footer_paragraph = section.footer.paragraphs[0]
     footer_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
     footer_paragraph.paragraph_format.space_before = Pt(0)
     footer_paragraph.paragraph_format.space_after = Pt(0)
-    footer_run = footer_paragraph.add_run("Page ")
+    footer_paragraph.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+    footer_run = footer_paragraph.add_run(
+        "Ashish Mahajan\nUniversity of the Cumberlands\nPage "
+    )
     set_run_font(footer_run, name="Times New Roman", size=9, color=MUTED)
     add_page_number_field(footer_paragraph)
 
@@ -261,7 +265,9 @@ def add_label_value(document: Document, label: str, value: str) -> None:
     set_run_font(value_run, name="Times New Roman", size=12)
 
 
-def add_title_block(document: Document, repository_url: str) -> None:
+def add_title_block(
+    document: Document, repository_url: str, commit_hash: str
+) -> None:
     paragraph = document.add_paragraph()
     paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
     paragraph.paragraph_format.space_before = Pt(10)
@@ -291,18 +297,27 @@ def add_title_block(document: Document, repository_url: str) -> None:
     add_label_value(
         document,
         "University",
-        f"University of the Cumberlands ({COURSE_CODE})",
+        "University of the Cumberlands",
     )
+    add_label_value(document, "Course", COURSE_CODE)
 
     paragraph = document.add_paragraph()
-    paragraph.paragraph_format.space_after = Pt(14)
+    paragraph.paragraph_format.space_after = Pt(3)
     label_run = paragraph.add_run("GitHub Assignment: ")
     set_run_font(label_run, name="Times New Roman", size=12, bold=True)
     add_hyperlink(paragraph, repository_url, repository_url)
+    add_label_value(document, "Final Commit", commit_hash)
 
 
-def add_section_heading(document: Document, number: int, title: str) -> None:
-    document.add_heading(f"{number}. {title}", level=1)
+def add_section_heading(
+    document: Document,
+    number: int,
+    title: str,
+    *,
+    page_break_before: bool = False,
+) -> None:
+    heading = document.add_heading(f"{number}. {title}", level=1)
+    heading.paragraph_format.page_break_before = page_break_before
 
 
 def set_image_alt_text(inline_shape, description: str) -> None:
@@ -405,42 +420,71 @@ def format_table_text(table) -> None:
 def add_validation_table(document: Document) -> None:
     rows = [
         (
+            "Formatting",
             "dart format .",
-            "PASS",
-            "Formatted 5 Dart files; 0 files changed.",
+            "PASS - Formatted 5 files; 0 changed.",
         ),
         (
+            "Static analysis",
             "flutter analyze",
-            "PASS",
-            "No issues found.",
+            "PASS - No issues found.",
         ),
         (
+            "Automated tests",
             "flutter test",
-            "PASS",
-            "All 11 unit and widget tests passed.",
+            "PASS - All 11 unit and widget tests passed.",
         ),
         (
-            "Android emulator runtime",
-            "PASS",
-            "Built, installed, and launched on Android 17 (API 37). Empty input, "
-            "length conversion, unit selection, and mass conversion were verified.",
+            "Runtime",
+            "flutter run -d emulator-5554 --no-resident",
+            "PASS - Built, installed, and launched on Android 17 (API 37); no "
+            "Flutter exception or overflow appeared in the final log scan.",
+        ),
+        (
+            "Length conversion",
+            "100 meters -> feet",
+            "PASS - 328.084 feet (live emulator and automated test).",
+        ),
+        (
+            "Length conversion",
+            "1 mile -> kilometers",
+            "PASS - 1.609344 kilometers (automated test).",
+        ),
+        (
+            "Mass conversion",
+            "1 kilogram -> pounds",
+            "PASS - 2.204623 pounds (live emulator and automated test).",
+        ),
+        (
+            "Mass conversion",
+            "1 pound -> kilograms",
+            "PASS - 0.45359237 kilograms (automated test).",
+        ),
+        (
+            "Same-unit conversion",
+            "42.5 ounces -> ounces",
+            "PASS - Returned 42.5 ounces (automated test).",
+        ),
+        (
+            "Input validation",
+            "Empty and invalid input",
+            "PASS - Displayed 'Enter a numeric value.' (live emulator and widget test).",
         ),
     ]
     table = document.add_table(rows=1, cols=3)
     table.style = "Table Grid"
-    headers = ["Validation", "Result", "Evidence"]
+    headers = ["Validation", "Command / Check", "Result"]
     for index, header in enumerate(headers):
         table.rows[0].cells[index].text = header
         set_cell_shading(table.rows[0].cells[index], LIGHT_GRAY)
 
-    for validation, result, evidence in rows:
+    for validation, check, result in rows:
         cells = table.add_row().cells
         cells[0].text = validation
-        cells[1].text = result
-        cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-        cells[2].text = evidence
+        cells[1].text = check
+        cells[2].text = result
 
-    set_table_geometry(table, [2800, 1120, 5440])
+    set_table_geometry(table, [1900, 3000, 4460])
     format_table_text(table)
 
 
@@ -462,7 +506,7 @@ def build_document(
     properties.keywords = "Flutter, Dart, Measures Converter, MSCS-533-A01"
     properties.comments = "Generated from the final Git repository contents."
 
-    add_title_block(document, repository_url)
+    add_title_block(document, repository_url, commit_hash)
 
     add_section_heading(document, 1, "Application Overview")
     document.add_paragraph(
@@ -491,23 +535,30 @@ def build_document(
     caption = document.add_paragraph(style="Academic Caption")
     caption.add_run("Figure 1. Measures Converter running on the Android emulator.")
 
-    add_section_heading(document, 3, "GitHub Repository")
-    paragraph = document.add_paragraph()
-    paragraph.add_run("Repository URL: ").bold = True
-    add_hyperlink(paragraph, repository_url, repository_url)
-    add_label_value(document, "Final Git branch", branch)
-    add_label_value(document, "Final commit hash", commit_hash)
+    add_section_heading(document, 3, "Implementation Design")
+    document.add_paragraph(
+        "The declarative Flutter interface is implemented as a StatefulWidget that "
+        "owns the numeric input controller, selected units, validation message, and "
+        "displayed result. From and To dropdowns update this state, while the "
+        "destination list is derived from the selected unit category so length and "
+        "mass units cannot be mixed."
+    )
+    document.add_paragraph(
+        "ConversionUnit defines each unit and its factor relative to a category base "
+        "unit: meters for length and kilograms for mass. ConversionService validates "
+        "compatibility, converts the source value to the base unit, and then converts "
+        "to the destination. This keeps conversion formulas separate from the UI and "
+        "avoids duplicated pair-by-pair calculations."
+    )
 
-    document.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
-    add_section_heading(document, 4, "Dart Source Code")
+    add_section_heading(document, 4, "Dart Source Code", page_break_before=True)
     document.add_paragraph(
         "The following source is read directly from the final repository so the "
         "submission matches the committed implementation."
     )
     add_source_code(document, root, source_files)
 
-    document.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
-    add_section_heading(document, 5, "Android Manifest")
+    add_section_heading(document, 5, "Android Manifest", page_break_before=True)
     document.add_paragraph(
         "Complete contents of android/app/src/main/AndroidManifest.xml:"
     )
@@ -515,8 +566,7 @@ def build_document(
         paragraph = document.add_paragraph(style="Repository Code")
         paragraph.add_run(line)
 
-    document.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
-    add_section_heading(document, 6, "Testing and Validation")
+    add_section_heading(document, 6, "Testing and Validation", page_break_before=True)
     document.add_paragraph(
         "Final validation was completed on August 30, 2026. The results below are "
         "from the final audit of this repository."
@@ -546,7 +596,14 @@ def build_document(
         "unit tests, and widget tests provide automated quality checks."
     )
 
-    add_section_heading(document, 8, "Development Tools and AI Assistance")
+    add_section_heading(document, 8, "GitHub Repository")
+    paragraph = document.add_paragraph()
+    paragraph.add_run("Repository URL: ").bold = True
+    add_hyperlink(paragraph, repository_url, repository_url)
+    add_label_value(document, "Branch", branch)
+    add_label_value(document, "Final commit", commit_hash)
+
+    add_section_heading(document, 9, "Development Tools and AI Assistance")
     document.add_paragraph(
         "Development used Visual Studio Code, Flutter, Dart, Android Studio and the "
         "Android Emulator, Git, GitHub, and AI-assisted development tools for setup "
@@ -555,6 +612,103 @@ def build_document(
     )
 
     return document
+
+
+def repository_code_lines(document: Document, heading_text: str) -> list[str]:
+    paragraphs = document.paragraphs
+    heading_index = next(
+        (index for index, paragraph in enumerate(paragraphs) if paragraph.text == heading_text),
+        None,
+    )
+    if heading_index is None:
+        raise SystemExit(f"Document validation failed: missing heading {heading_text}")
+
+    code_lines: list[str] = []
+    code_started = False
+    for paragraph in paragraphs[heading_index + 1 :]:
+        if paragraph.style.name == "Repository Code":
+            code_started = True
+            code_lines.append(paragraph.text)
+        elif code_started:
+            break
+
+    if not code_lines:
+        raise SystemExit(
+            f"Document validation failed: no repository code followed {heading_text}"
+        )
+    return code_lines
+
+
+def validate_document(
+    output: Path,
+    root: Path,
+    source_files: list[Path],
+    repository_url: str,
+    commit_hash: str,
+) -> None:
+    if output.stat().st_size < 10_000:
+        raise SystemExit("Document validation failed: output file is unexpectedly small.")
+
+    document = Document(output)
+    body_text = "\n".join(paragraph.text for paragraph in document.paragraphs)
+    required_text = [
+        COURSE,
+        COURSE_CODE,
+        "Hands-on Assignment 1:",
+        "Construct Your First Flutter App using Dart",
+        STUDENT,
+        "University of the Cumberlands",
+        repository_url,
+        commit_hash,
+        "1. Application Overview",
+        "2. Application Output",
+        "3. Implementation Design",
+        "4. Dart Source Code",
+        "5. Android Manifest",
+        "6. Testing and Validation",
+        "7. Coding Practices",
+        "8. GitHub Repository",
+        "9. Development Tools and AI Assistance",
+        "Figure 1. Measures Converter running on the Android emulator.",
+    ]
+    missing_text = [item for item in required_text if item not in body_text]
+    if missing_text:
+        raise SystemExit(
+            "Document validation failed: missing required text: "
+            + ", ".join(missing_text)
+        )
+
+    header_text = "\n".join(
+        paragraph.text for paragraph in document.sections[0].header.paragraphs
+    )
+    footer_text = "\n".join(
+        paragraph.text for paragraph in document.sections[0].footer.paragraphs
+    )
+    if COURSE_CODE not in header_text or "Software Engineering" not in header_text:
+        raise SystemExit("Document validation failed: UC course header is incomplete.")
+    if STUDENT not in footer_text or "University of the Cumberlands" not in footer_text:
+        raise SystemExit("Document validation failed: UC footer is incomplete.")
+
+    if len(document.inline_shapes) < 1:
+        raise SystemExit("Document validation failed: screenshot is not embedded.")
+
+    for source_file in source_files:
+        relative_path = source_file.relative_to(root).as_posix()
+        expected_lines = source_file.read_text(encoding="utf-8").splitlines()
+        if repository_code_lines(document, relative_path) != expected_lines:
+            raise SystemExit(
+                f"Document validation failed: source does not match {relative_path}."
+            )
+
+    manifest_lines = (root / MANIFEST_PATH).read_text(encoding="utf-8").splitlines()
+    if repository_code_lines(document, "5. Android Manifest") != manifest_lines:
+        raise SystemExit("Document validation failed: AndroidManifest.xml does not match.")
+
+    if not document.tables:
+        raise SystemExit("Document validation failed: validation table is missing.")
+    table_headers = [cell.text for cell in document.tables[0].rows[0].cells]
+    if table_headers != ["Validation", "Command / Check", "Result"]:
+        raise SystemExit("Document validation failed: validation table headers differ.")
 
 
 def main() -> None:
@@ -582,7 +736,16 @@ def main() -> None:
     if not output.is_file() or output.stat().st_size == 0:
         raise SystemExit(f"Document generation failed: {OUTPUT_PATH}")
 
+    validate_document(
+        output,
+        root,
+        source_files,
+        repository_url,
+        commit_hash,
+    )
+
     print(f"Generated {OUTPUT_PATH} ({output.stat().st_size:,} bytes)")
+    print("Validated required content, embedded screenshot, source, and manifest.")
     print(f"Repository: {repository_url}")
     print(f"Branch: {branch}")
     print(f"Commit: {commit_hash}")
