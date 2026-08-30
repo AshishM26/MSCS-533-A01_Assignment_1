@@ -54,3 +54,6 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Local assignment submission artifacts
+submission/*.docx

@@ -13,6 +13,8 @@ class ConversionUnit {
   final String singularName;
   final String symbol;
   final MeasurementCategory category;
+
+  /// Number of category base units represented by one source unit.
   final double toBaseFactor;
 
   String labelFor(double value) => value.abs() == 1 ? singularName : name;

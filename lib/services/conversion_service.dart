@@ -3,6 +3,7 @@ import '../models/conversion_unit.dart';
 class ConversionService {
   const ConversionService();
 
+  /// Converts through the category base unit after validating compatibility.
   double convert({
     required double value,
     required ConversionUnit from,
