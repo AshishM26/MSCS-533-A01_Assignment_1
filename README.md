@@ -59,6 +59,6 @@ flutter test
 
 <https://github.com/AshishM26/MSCS-533-A01_Assignment_1>
 
-## Development / AI Assistance
+## Development Tools
 
-AI-assisted tools supported setup, implementation review, troubleshooting, and testing. The student reviewed and tested the final implementation.
+I used Flutter, Dart, Android Studio, Visual Studio Code, Git, GitHub, and AI-assisted tools during development. I reviewed the code and verified the final application through static analysis, automated tests, and Android emulator testing.
