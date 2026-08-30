@@ -55,5 +55,9 @@ app.*.map.json
 # Widget Preview related
 .widget_preview/
 
-# Local assignment submission artifacts
-submission/*.docx
+# Local assignment working and submission artifacts
+/tools/
+/submission/
+/screenshots/README.md
+screenshots/*_initial.png
+/screenshots/measures_converter_mass.png
